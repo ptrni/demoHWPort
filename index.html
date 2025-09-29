@@ -1,74 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EXR Background with Plane</title>
-  <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-    }
-    canvas {
-      display: block;
-    }
-  </style>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EXR Background with Plane</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            height: 100%;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
 </head>
+
 <body>
-<script>
-  // Scene / Camera / Renderer
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.set(0, 5, 10); // ยกกล้องขึ้นเพื่อมองเห็น Plane
+    <script>
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+        // Scene / Camera / Renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+        camera.position.set(0, 10, 20); // ยกกล้องขึ้นและซูมออก
 
-  // OrbitControls
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-  // PMREM Generator
-  const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  pmremGenerator.compileEquirectangularShader();
+        // OrbitControls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-  // Load EXR and set as background
-  new THREE.EXRLoader()
-    .setPath('./')  // Path to EXR file
-    .load('citrus_orchard_road_puresky_1k.exr', (texture) => {
-      const envMap = pmremGenerator.fromEquirectangular(texture).texture;
-      scene.environment = envMap; // Set environment map
-      scene.background = envMap; // Set background
-      texture.dispose();
-      console.log("✅ EXR Loaded");
-    }, undefined, (err) => {
-      console.error("❌ EXR load error", err);
-    });
+        // PMREM Generator
+        const pmremGenerator = new THREE.PMREMGenerator(renderer);
+        pmremGenerator.compileEquirectangularShader();
 
-  // Add Plane
-  const planeGeometry = new THREE.PlaneGeometry(10, 10); // สร้าง Plane ขนาด 10x10
-  const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.5 }); // สีเทา
-  const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-  plane.rotation.x = -Math.PI / 2; // หมุน Plane ให้ราบกับพื้น
-  scene.add(plane);
+        // Load EXR and set as background
+        new THREE.EXRLoader()
+            .setPath('./')  // Path to EXR file
+            .load('citrus_orchard_road_puresky_1k.exr', (texture) => {
+                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+                scene.environment = envMap; // Set environment map
+                scene.background = envMap; // Set background
+                texture.dispose();
+                console.log("✅ EXR Loaded");
+            }, undefined, (err) => {
+                console.error("❌ EXR load error", err);
+            });
 
-  // Resize handler
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
+        // Add Plane
+        const planeGeometry = new THREE.PlaneGeometry(10, 10); // สร้าง Plane ขนาด 10x10
+        const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.5 }); // สีเทา
+        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.rotation.x = -Math.PI / 2; // หมุน Plane ให้ราบกับพื้น
+        scene.add(plane);
 
-  // Render loop
-  function animate() {
-    controls.update(); // อัปเดตการควบคุมกล้อง
-    renderer.render(scene, camera);
-    requestAnimationFrame(animate);
-  }
-  animate();
-</script>
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Render loop
+        function animate() {
+            controls.update(); // อัปเดตการควบคุมกล้อง
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
 </body>
+
 </html>
