@@ -32,7 +32,6 @@
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;  // เปิดการแสดงผลเงา
         document.body.appendChild(renderer.domElement);
 
         // OrbitControls
@@ -55,19 +54,11 @@
                 console.error("❌ EXR load error", err);
             });
 
-        // Add Plane (Stand upright and set shadows)
+        // Add Plane (Stand upright)
         const planeGeometry = new THREE.PlaneGeometry(10, 10); // สร้าง Plane ขนาด 10x10
-        const planeMaterial = new THREE.MeshStandardMaterial({
-            color: 0x808080, 
-            roughness: 0.5, 
-            metalness: 0.5, 
-            side: THREE.DoubleSide,
-            reflectivity: 0.8
-        }); // สีเทาและตั้งค่าให้มีการสะท้อนเงา
+        const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.5 }); // สีเทา
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.rotation.x = Math.PI / 2; // หมุน Plane ให้ยืนขึ้น
-        plane.position.set(0, 2, 0);  // ยก plane ขึ้น
-        plane.receiveShadow = true;  // เปิดการรับเงาของ plane
         scene.add(plane);
 
         // Load GLB Model
@@ -82,12 +73,6 @@
         }, undefined, (err) => {
             console.error("❌ GLB load error", err);
         });
-
-        // Add Light
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 10, 5); // ตำแหน่งของแสง
-        directionalLight.castShadow = true;  // เปิดการสร้างเงา
-        scene.add(directionalLight);
 
         // Resize handler
         window.addEventListener('resize', () => {
