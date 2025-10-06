@@ -65,8 +65,10 @@
         const loader = new THREE.GLTFLoader();
         loader.load('name.glb', (gltf) => {
             const model = gltf.scene;
+            // Rotate model to be upright
+            model.rotation.x = Math.PI / 2;  // Adjust rotation if needed
+            model.position.set(0, 5, 0); // Adjust the model's height (Y position)
             scene.add(model); // Add model to scene
-            model.position.set(0, 0, 0); // Set position of the model
             console.log("✅ GLB Model Loaded");
         }, undefined, (err) => {
             console.error("❌ GLB load error", err);
