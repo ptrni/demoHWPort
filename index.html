@@ -58,7 +58,7 @@
         const planeGeometry = new THREE.PlaneGeometry(10, 10); // สร้าง Plane ขนาด 10x10
         const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.5 }); // สีเทา
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.rotation.x = -Math.PI / 2; // หมุน Plane ให้ราบกับพื้น
+        plane.rotation.x = Math.PI / 2; // หมุน Plane ให้ราบกับพื้น
         scene.add(plane);
 
         // Load GLB Model
