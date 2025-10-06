@@ -19,6 +19,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 
 <body>
@@ -59,6 +60,17 @@
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
         plane.rotation.x = -Math.PI / 2; // หมุน Plane ให้ราบกับพื้น
         scene.add(plane);
+
+        // Load GLB Model
+        const loader = new THREE.GLTFLoader();
+        loader.load('name.glb', (gltf) => {
+            const model = gltf.scene;
+            scene.add(model); // Add model to scene
+            model.position.set(0, 0, 0); // Set position of the model
+            console.log("✅ GLB Model Loaded");
+        }, undefined, (err) => {
+            console.error("❌ GLB load error", err);
+        });
 
         // Resize handler
         window.addEventListener('resize', () => {
