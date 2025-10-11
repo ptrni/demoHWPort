@@ -2,113 +2,107 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EXR Background with Plane</title>
-    <style>
-        html,
-        body {
-            margin: 0;
-            height: 100%;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EXR Background with Plane</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+    }
 
-        canvas {
-            display: block;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    canvas {
+      display: block;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 
 <body>
-    <script>
+  <script>
+    // Scene / Camera / Renderer
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 10, 20); // ยกกล้องขึ้นและซูมออก
 
-        // Scene / Camera / Renderer
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 10, 20); // ยกกล้องขึ้นและซูมออก
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true; // เปิดการแสดงผลเงา
+    document.body.appendChild(renderer.domElement);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+    // OrbitControls
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-        // OrbitControls
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // PMREM Generator
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
 
-        // PMREM Generator
-        const pmremGenerator = new THREE.PMREMGenerator(renderer);
-        pmremGenerator.compileEquirectangularShader();
+    // Load EXR and set as background
+    new THREE.EXRLoader()
+      .setPath('./') // Path to EXR file
+      .load('belfast_sunset_puresky_1k.exr', (texture) => {
+        const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+        scene.environment = envMap;
+        scene.background = envMap;
+        texture.dispose();
+        console.log("✅ EXR Loaded");
+      }, undefined, (err) => {
+        console.error("❌ EXR load error", err);
+      });
 
-        // Load EXR and set as background
-        new THREE.EXRLoader()
-            .setPath('./')  // Path to EXR file
-            .load('belfast_sunset_puresky_1k.exr', (texture) => {
-                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
-                scene.environment = envMap; // Set environment map
-                scene.background = envMap; // Set background
-                texture.dispose();
-                console.log("✅ EXR Loaded");
-            }, undefined, (err) => {
-                console.error("❌ EXR load error", err);
-            });
+    // Add Plane (Stand upright)
+    const planeGeometry = new THREE.PlaneGeometry(10, 10); // สร้าง Plane ขนาด 10x10
+    const planeMaterial = new THREE.MeshStandardMaterial({
+      color: 0x808080,
+      roughness: 0.5,
+      metalness: 0.5,
+      side: THREE.DoubleSide,
+      reflectivity: 0.8
+    }); // สีเทาและตั้งค่าให้มีการสะท้อนเงา
 
-        // Add Plane
-        const planeGeometry = new THREE.PlaneGeometry(10, 10); // สร้าง Plane ขนาด 10x10
-        const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.5 }); // สีเทา
-        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.rotation.x = Math.PI / 2; // หมุน Plane ให้ราบกับพื้น
-        scene.add(plane);
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.rotation.x = Math.PI / 2; // หมุน Plane ให้ยืนขึ้น
+    plane.position.set(0, 2, 0); // ยก plane ขึ้น
+    plane.receiveShadow = true; // เปิดการรับเงาของ plane
+    scene.add(plane);
 
-        // Load GLB Model
-        const loader = new THREE.GLTFLoader();
-        loader.load('name.glb', (gltf) => {
-            const model = gltf.scene;
-            scene.add(model); // Add model to scene
-            model.position.set(0, 0, 0); // Set position of the model
-            console.log("✅ GLB Model Loaded");
-        }, undefined, (err) => {
-            console.error("❌ GLB load error", err);
-        });
+    // Load GLB Model
+    const loader = new THREE.GLTFLoader();
+    loader.load('name.glb', (gltf) => {
+      const model = gltf.scene;
+      scene.add(model);
+      model.position.set(0, 0, 0);
+      console.log("✅ GLB Model Loaded");
+    }, undefined, (err) => {
+      console.error("❌ GLB load error", err);
+    });
 
-        // 🔹 สร้างข้อความแนวตั้งในฉาก (ไม่เพิ่มแท็ก HTML)
-        const textCanvas = document.createElement('canvas');
-        const ctx = textCanvas.getContext('2d');
-        textCanvas.width = 256;
-        textCanvas.height = 512;
+    // Add Light
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 10, 5); // ตำแหน่งของแสง
+    directionalLight.castShadow = true; // เปิดการสร้างเงา
+    scene.add(directionalLight);
 
-        ctx.fillStyle = 'white';
-        ctx.font = '30px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        const text = 'name.glb';
-        for (let i = 0; i < text.length; i++) {
-            ctx.fillText(text[i], textCanvas.width / 2, i * 40 + 20);
-        }
+    // Resize handler
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 
-        const textTexture = new THREE.CanvasTexture(textCanvas);
-        const textMaterial = new THREE.SpriteMaterial({ map: textTexture, transparent: true });
-        const textSprite = new THREE.Sprite(textMaterial);
-        textSprite.scale.set(2, 4, 1); // ขนาดข้อความ
-        textSprite.position.set(-6, 5, 0); // วางข้อความด้านซ้ายของโมเดล
-        scene.add(textSprite);
+    // Render loop
+    function animate() {
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(animate);
+    }
 
-        // Resize handler
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // Render loop
-        function animate() {
-            controls.update(); // อัปเดตการควบคุมกล้อง
-            renderer.render(scene, camera);
-            requestAnimationFrame(animate);
-        }
-        animate();
-    </script>
+    animate();
+  </script>
 </body>
 
 </html>
