@@ -44,7 +44,7 @@
         // Load EXR and set as background
         new THREE.EXRLoader()
             .setPath('./')  // Path to EXR file
-            .load('citrus_orchard_road_puresky_1k.exr', (texture) => {
+            .load('belfast_sunset_puresky_1k.exr', (texture) => {
                 const envMap = pmremGenerator.fromEquirectangular(texture).texture;
                 scene.environment = envMap; // Set environment map
                 scene.background = envMap; // Set background
@@ -54,21 +54,19 @@
                 console.error("❌ EXR load error", err);
             });
 
-        // Add Plane (Stand upright)
+        // Add Plane
         const planeGeometry = new THREE.PlaneGeometry(10, 10); // สร้าง Plane ขนาด 10x10
         const planeMaterial = new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.5 }); // สีเทา
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.rotation.x = Math.PI / 2; // หมุน Plane ให้ยืนขึ้น
+        plane.rotation.x = Math.PI / 2; // หมุน Plane ให้ราบกับพื้น
         scene.add(plane);
 
         // Load GLB Model
         const loader = new THREE.GLTFLoader();
         loader.load('name.glb', (gltf) => {
             const model = gltf.scene;
-            // หมุนโมเดลให้ยืนตรง
-            model.rotation.x = Math.PI / 2;  // ปรับการหมุนให้เหมาะสม
-            model.position.set(0, 5, 0); // ปรับความสูงของโมเดล (ตำแหน่ง Y)
-            scene.add(model); // เพิ่มโมเดลเข้าไปในฉาก
+            scene.add(model); // Add model to scene
+            model.position.set(0, 0, 0); // Set position of the model
             console.log("✅ GLB Model Loaded");
         }, undefined, (err) => {
             console.error("❌ GLB load error", err);
