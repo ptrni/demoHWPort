@@ -99,20 +99,46 @@
         }
     );
 
-     loader.load(
-        'waterball.glb',
-        (gltf) => {
-            const model = gltf.scene;
-            model.position.set(7.55, 1.5, -1.85);
-            model.name = "Land";
-            scene.add(model);
-            console.log("✅ waterball.glb Loaded");
-        },
-        undefined,
-        (err) => {
-            console.error("❌ waterball.glb load error", err);
+    let waterballModel; // เก็บโมเดล waterball
+
+loader.load(
+    'waterball.glb',
+    (gltf) => {
+        waterballModel = gltf.scene;
+        waterballModel.position.set(7.55, 1.5, -1.85);
+        waterballModel.name = "Waterball";
+        scene.add(waterballModel);
+        console.log("✅ waterball.glb Loaded");
+    },
+    undefined,
+    (err) => {
+        console.error("❌ waterball.glb load error", err);
+    }
+);
+
+// ในฟังก์ชัน animate()
+function animate() {
+    requestAnimationFrame(animate);
+
+    // หมุน waterball
+    if (waterballModel) {
+        waterballModel.rotation.y += 0.01; // ปรับค่าตามความเร็วที่ต้องการ
+    }
+
+    if (isZooming) {
+        camera.position.lerp(targetCameraPos, zoomSpeed);
+        controls.target.lerp(targetLookAt, zoomSpeed);
+        controls.update();
+
+        if (camera.position.distanceTo(targetCameraPos) < 0.1) {
+            isZooming = false;
         }
-    );
+    }
+
+    controls.update();
+    renderer.render(scene, camera);
+}
+
     // Add Light
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(5, 10, 5);
