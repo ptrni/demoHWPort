@@ -79,7 +79,7 @@ loader.load('Land.glb', (gltf) => {
     const model = gltf.scene;
     model.scale.set(0.3, 0.3, 0.3); // ลดขนาดโมเดล
     model.rotation.x = 0;            // ทำให้นอนราบ
-    model.position.set(-5, 0, 0);    // วางบนพื้น
+    model.position.set(0, 0, 0);    // วางบนพื้น
     scene.add(model);
     console.log("✅ Land.glb Loaded");
 }, undefined, (err) => {
