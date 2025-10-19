@@ -18,7 +18,7 @@
 <script>
     // ----- Scene / Camera / Renderer -----
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
     camera.position.set(0, 20, 20);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -48,13 +48,13 @@
             (err) => console.error("❌ EXR load error", err)
         );
 
-    //  GLTF Loader 
+    // ----- GLTF Loader -----
     const loader = new THREE.GLTFLoader();
     let picModel = null;
     let waterballModel = null;
     let doggModel = null;
 
-    // โหลด Land.glb 
+    // ----- โหลด Land.glb -----
     loader.load('Land.glb',
         (gltf) => {
             const model = gltf.scene;
@@ -67,7 +67,7 @@
         (err) => console.error("❌ Land.glb load error", err)
     );
 
-    // PicName.glb
+    // ----- โหลด PicName.glb -----
     loader.load('picname.glb',
         (gltf) => {
             picModel = gltf.scene;
@@ -82,7 +82,7 @@
         (err) => console.error("❌ picname.glb load error", err)
     );
 
-    // Waterball.glb
+    // ----- โหลด Waterball.glb -----
     loader.load('waterball.glb',
         (gltf) => {
             waterballModel = gltf.scene;
@@ -95,7 +95,7 @@
         (err) => console.error("❌ waterball.glb load error", err)
     );
 
-    // โหลด Dogg.glb 
+    // ----- โหลด Dogg.glb -----
     loader.load('dogg.glb',
         (gltf) => {
             doggModel = gltf.scene;
@@ -135,7 +135,7 @@
             const hit = intersects[0].object;
             console.log("✅ Clicked:", hit.name || hit);
 
-            // คลิก PicName → ซูมเข้า
+            // PicName → ซูมเข้า
             if (hit.name === "PicName" || (hit.parent && hit.parent.name === "PicName")) {
                 const box = new THREE.Box3().setFromObject(picModel);
                 const center = box.getCenter(new THREE.Vector3());
@@ -144,7 +144,7 @@
                 isZooming = true;
             }
 
-            // คลิก Waterball → ซูมเข้า
+            // Waterball → ซูมเข้า
             if (hit.name === "Waterball" || (hit.parent && hit.parent.name === "Waterball")) {
                 const box = new THREE.Box3().setFromObject(waterballModel);
                 const center = box.getCenter(new THREE.Vector3());
@@ -153,13 +153,16 @@
                 isZooming = true;
             }
 
-            // คลิก Dogg → ซูมออก
+            // Dogg → ซูมออก
             if (hit.name === "Dogg" || (hit.parent && hit.parent.name === "Dogg")) {
                 const box = new THREE.Box3().setFromObject(doggModel);
                 const center = box.getCenter(new THREE.Vector3());
                 targetLookAt.copy(center);
-                // ซูมออกโดยเอากล้องถอยไปด้านหลังมากขึ้น
-                targetCameraPos.copy(center.clone().add(new THREE.Vector3(0, 20, 30)));
+
+                // ปรับระยะซูมออกให้ชัดเจน
+                const zoomOutHeight = 30;  // กล้องสูงขึ้น
+                const zoomOutDistance = 50; // กล้องถอยหลัง
+                targetCameraPos.set(center.x, center.y + zoomOutHeight, center.z + zoomOutDistance);
                 isZooming = true;
             }
         }
@@ -179,9 +182,9 @@
 
         // หมุน Waterball ขึ้นลงแกน X
         if (waterballModel) {
-            waterballModel.rotation.x += 0.01; // ความเร็วหมุนขึ้นลง
-            waterballModel.rotation.y = 0;     // ล็อกแกน Y
-            waterballModel.rotation.z = 0;     // ล็อกแกน Z
+            waterballModel.rotation.x += 0.01;
+            waterballModel.rotation.y = 0;
+            waterballModel.rotation.z = 0;
         }
 
         // ซูมเข้าออก
