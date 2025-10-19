@@ -48,13 +48,13 @@
             (err) => console.error("❌ EXR load error", err)
         );
 
-    // ----- GLTF Loader -----
+    //  GLTF Loader 
     const loader = new THREE.GLTFLoader();
     let picModel = null;
     let waterballModel = null;
     let doggModel = null;
 
-    // ----- โหลด Land.glb -----
+    // โหลด Land.glb 
     loader.load('Land.glb',
         (gltf) => {
             const model = gltf.scene;
@@ -67,7 +67,7 @@
         (err) => console.error("❌ Land.glb load error", err)
     );
 
-    // ----- โหลด PicName.glb -----
+    // PicName.glb
     loader.load('picname.glb',
         (gltf) => {
             picModel = gltf.scene;
@@ -82,7 +82,7 @@
         (err) => console.error("❌ picname.glb load error", err)
     );
 
-    // ----- โหลด Waterball.glb -----
+    // Waterball.glb
     loader.load('waterball.glb',
         (gltf) => {
             waterballModel = gltf.scene;
@@ -95,11 +95,11 @@
         (err) => console.error("❌ waterball.glb load error", err)
     );
 
-    // ----- โหลด Dogg.glb -----
+    // โหลด Dogg.glb 
     loader.load('dogg.glb',
         (gltf) => {
             doggModel = gltf.scene;
-            doggModel.position.set(-5, 0, 5);
+            doggModel.position.set(0, 0, 2);
             doggModel.scale.set(1, 1, 1);
             doggModel.name = "Dogg";
             scene.add(doggModel);
