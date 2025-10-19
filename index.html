@@ -23,15 +23,20 @@
 <script>
     // Scene / Camera / Renderer
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 5, 10);
+    const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        100
+    );
+    camera.position.set(0, 20, 20);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
 
-    // Controls
+    // OrbitControls
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
     // PMREM Generator
@@ -41,74 +46,79 @@
     // Load EXR and set as background
     new THREE.EXRLoader()
         .setPath('./')
-        .load('citrus_orchard_road_puresky_1k.exr', (texture) => {
-            const envMap = pmremGenerator.fromEquirectangular(texture).texture;
-            scene.environment = envMap;
-            scene.background = envMap;
-            texture.dispose();
-            console.log("✅ EXR Loaded");
-        }, undefined, (err) => {
-            console.error("❌ EXR load error", err);
-        });
+        .load(
+            'citrus_orchard_road_puresky_1k.exr',
+            (texture) => {
+                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+                scene.environment = envMap;
+                scene.background = envMap;
+                texture.dispose();
+                console.log("✅ EXR Loaded");
+            },
+            undefined,
+            (err) => {
+                console.error("❌ EXR load error", err);
+            }
+        );
 
-    // Load GLB Models
+    // Loader สำหรับ GLB ตัวแรก
     const loader = new THREE.GLTFLoader();
 
     // โหลด Land.glb
-    loader.load('Land.glb', (gltf) => {
-        const model = gltf.scene;
-        model.position.set(0, 0, 0);
-        model.scale.set(1, 1, 1);
-        model.name = "Land";
-        scene.add(model);
-        console.log("✅ Land.glb Loaded");
-    }, undefined, (err) => {
-        console.error("❌ Land.glb load error", err);
-    });
+    loader.load(
+        'Land.glb',
+        (gltf) => {
+            const model = gltf.scene;
+            model.position.set(0, 0, 0);
+            model.name = "Land";
+            scene.add(model);
+            console.log("✅ Land.glb Loaded");
+        },
+        undefined,
+        (err) => {
+            console.error("❌ Land.glb load error", err);
+        }
+    );
 
     // โหลด picname.glb
-    loader.load('picname.glb', (gltf) => {
-        const model = gltf.scene;
-        model.scale.set(1, 1, 1);
-        model.rotation.x = Math.PI / 2;
-        model.position.set(0, 1, 0); // ยกขึ้นเล็กน้อย
-        model.name = "Pic";
-        scene.add(model);
-        console.log("✅ picname.glb Loaded");
-    }, undefined, (err) => {
-        console.error("❌ picname.glb load error", err);
-    });
+    let picModel; // เก็บตัวโมเดลไว้ใช้ภายหลัง
+    loader.load(
+        'picname.glb',
+        (gltf) => {
+            picModel = gltf.scene;
+            picModel.scale.set(1, 1, 1);
+            picModel.rotation.x = Math.PI / 2;
+            picModel.position.set(0, 10, 0);
+            picModel.name = "PicName";
+            scene.add(picModel);
+            console.log("✅ picname.glb Loaded");
+        },
+        undefined,
+        (err) => {
+            console.error("❌ picname.glb load error", err);
+        }
+    );
 
-    // Light
+    // Add Light
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
     directionalLight.position.set(5, 10, 5);
     directionalLight.castShadow = true;
     scene.add(directionalLight);
 
-    // Resize
+    // Resize handler
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // --- ระบบคลิกเพื่อซูมเข้า ---
+    // ----- ระบบคลิกเพื่อซูมเข้า -----
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    const clickable = [];
     let isZooming = false;
     let targetCameraPos = new THREE.Vector3();
     let targetLookAt = new THREE.Vector3();
-    const zoomSpeed = 0.05;
-
-    // เมื่อโมเดลโหลดเสร็จแล้ว ให้เพิ่มเข้า clickable
-    const observer = new MutationObserver(() => {
-        clickable.length = 0;
-        scene.traverse(obj => {
-            if (obj.isMesh) clickable.push(obj);
-        });
-    });
-    observer.observe(renderer.domElement, { childList: true });
+    const zoomSpeed = 0.05; // ความนุ่มของซูม
 
     function onClick(event) {
         const rect = renderer.domElement.getBoundingClientRect();
@@ -116,26 +126,27 @@
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
         raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(clickable, true);
+        const intersects = raycaster.intersectObjects(scene.children, true);
+
         if (intersects.length > 0) {
             const hit = intersects[0].object;
             console.log("✅ Clicked:", hit.name || hit);
 
-            // หา center ของ object ที่คลิก
-            const box = new THREE.Box3().setFromObject(hit);
-            const center = box.getCenter(new THREE.Vector3());
+            if (hit.name === "PicName" || (hit.parent && hit.parent.name === "PicName")) {
+                const box = new THREE.Box3().setFromObject(picModel);
+                const center = box.getCenter(new THREE.Vector3());
 
-            // ตั้งตำแหน่งกล้องและเป้าหมายที่ต้องการซูมเข้า
-            targetLookAt.copy(center);
-            targetCameraPos.copy(center.clone().add(new THREE.Vector3(0, 1.5, 3)));
-
-            isZooming = true;
+                // ตั้งตำแหน่งซูมเข้าใกล้ picname
+                targetLookAt.copy(center);
+                targetCameraPos.copy(center.clone().add(new THREE.Vector3(0, 5, 10)));
+                isZooming = true;
+            }
         }
     }
 
     renderer.domElement.addEventListener('click', onClick);
 
-    // Animate Loop
+    // Render loop
     function animate() {
         requestAnimationFrame(animate);
 
@@ -145,8 +156,7 @@
             controls.target.lerp(targetLookAt, zoomSpeed);
             controls.update();
 
-            // หยุดเมื่อเข้าใกล้พอ
-            if (camera.position.distanceTo(targetCameraPos) < 0.05) {
+            if (camera.position.distanceTo(targetCameraPos) < 0.1) {
                 isZooming = false;
             }
         }
