@@ -78,12 +78,12 @@ const loader = new THREE.GLTFLoader();
 loader.load('Land.glb', (gltf) => {
     const model = gltf.scene;
     model.scale.set(0.3, 0.3, 0.3); // ลดขนาดโมเดล
-    model.rotation.x = Math.PI / 2;
-    model.position.set(-5, 1.5, 0); // ปรับตำแหน่งให้เหมาะสมกับขนาดใหม่
+    model.rotation.x = 0;            // ทำให้นอนราบ
+    model.position.set(-5, 0, 0);    // วางบนพื้น
     scene.add(model);
-    console.log("✅ name.glb Loaded");
+    console.log("✅ Land.glb Loaded");
 }, undefined, (err) => {
-    console.error("❌ name.glb load error", err);
+    console.error("❌ Land.glb load error", err);
 });
 
 // โหลด floating_fantasy_island_diorama.glb
