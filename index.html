@@ -29,7 +29,7 @@
         0.1,
         100
     );
-    camera.position.set(0, 10, 20); // ยกกล้องขึ้นและซูมออก
+    camera.position.set(0, 5, 10); // ยกกล้องขึ้นและซูมออก
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -80,17 +80,17 @@
         }
     );
 
-    // โหลด floating_fantasy_island_diorama.glb (คอมเมนต์ไว้)
-    // loader.load('floating_fantasy_island_diorama.glb', (gltf) => {
-    //     const model = gltf.scene;
-    //     model.scale.set(0.3, 0.3, 0.3);
-    //     model.rotation.x = Math.PI / 2;
-    //     model.position.set(5, 1.5, 0);
-    //     scene.add(model);
-    //     console.log("✅ floating_fantasy_island_diorama.glb Loaded");
-    // }, undefined, (err) => {
-    //     console.error("❌ floating_fantasy_island_diorama.glb load error", err);
-    // });
+    // โหลด name.glb
+     loader.load('name.glb', (gltf) => {
+         const model = gltf.scene;
+         model.scale.set(1, 1, 1);
+         model.rotation.x = Math.PI / 2;
+         model.position.set(5, 1.5, 0);
+         scene.add(model);
+         console.log("✅ floating_fantasy_island_diorama.glb Loaded");
+     }, undefined, (err) => {
+        console.error("❌ floating_fantasy_island_diorama.glb load error", err);
+     });
 
     // Add Light
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
