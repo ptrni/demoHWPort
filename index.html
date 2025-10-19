@@ -70,7 +70,6 @@
         (gltf) => {
             const model = gltf.scene;
             model.scale.set(0.3, 0.3, 0.3);  // ลดขนาดโมเดล
-            model.rotation.x = Math.PI / 2;
             model.position.set(-5, 1.5, 0);  // ปรับตำแหน่งให้เหมาะสม
             scene.add(model);
             console.log("✅ name.glb Loaded");
