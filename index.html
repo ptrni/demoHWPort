@@ -28,11 +28,11 @@
         // Scene / Camera / Renderer
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 5, 15); // ตั้งกล้องให้เห็นโมเดลเต็ม ๆ
+        camera.position.set(0, 10, 20); // ยกกล้องขึ้นและซูมออก
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.enabled = true;  // เปิดการแสดงผลเงา
         document.body.appendChild(renderer.domElement);
 
         // OrbitControls
@@ -44,57 +44,66 @@
 
         // Load EXR and set as background
         new THREE.EXRLoader()
-            .setPath('./')
+            .setPath('./')  // Path to EXR file
             .load('citrus_orchard_road_puresky_1k.exr', (texture) => {
                 const envMap = pmremGenerator.fromEquirectangular(texture).texture;
-                scene.environment = envMap;
-                scene.background = envMap;
+                scene.environment = envMap; // Set environment map
+                scene.background = envMap; // Set background
                 texture.dispose();
                 console.log("✅ EXR Loaded");
             }, undefined, (err) => {
                 console.error("❌ EXR load error", err);
             });
 
-        // Add Plane
-        const planeGeometry = new THREE.PlaneGeometry(30, 30);
+        // Add Plane (Stand upright and set shadows)
+        const planeGeometry = new THREE.PlaneGeometry(10, 10); // สร้าง Plane ขนาด 10x10
         const planeMaterial = new THREE.MeshStandardMaterial({
             color: 0x808080,
             roughness: 0.5,
             metalness: 0.5,
-            side: THREE.DoubleSide
-        });
+            side: THREE.DoubleSide,
+            reflectivity: 0.8
+        }); // สีเทาและตั้งค่าให้มีการสะท้อนเงา
+
         const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.rotation.x = -Math.PI / 2; // วางราบกับพื้น
-        plane.position.y = -1; // ขยับลงเล็กน้อย
-        plane.receiveShadow = true;
+        plane.rotation.x = Math.PI / 2; // หมุน Plane ให้ยืนขึ้น
+        plane.position.set(0, 2, 0);  // ยก plane ขึ้น
+        plane.receiveShadow = true;  // เปิดการรับเงาของ plane
         scene.add(plane);
 
-        // Load GLB Model (กลางฉาก)
-        const loader = new THREE.GLTFLoader();
-        loader.load('floating_fantasy_island_diorama.glb', (gltf) => {
-            const model = gltf.scene;
-            model.position.set(0, 0, 0); // อยู่ตรงกลางฉาก
-            model.rotation.set(0, 0, 0); // ไม่หมุนแกน
-            model.scale.set(1, 1, 1);    // ปรับขนาดเท่าเดิม
-            model.traverse((child) => {
-                if (child.isMesh) child.castShadow = true;
-            });
-            scene.add(model);
-            console.log("✅ GLB Model Loaded");
-        }, undefined, (err) => {
-            console.error("❌ GLB load error", err);
-        });
+      // Loader สำหรับ GLB ตัวแรก
+const loader = new THREE.GLTFLoader();
 
-        // Light
+// โหลด name.glb
+loader.load('name.glb', (gltf) => {
+    const model = gltf.scene;
+    model.rotation.x = Math.PI / 2;
+    model.position.set(-5, 5, 0); // วางตำแหน่งแยกจากอีกโมเดล
+    scene.add(model);
+    console.log("✅ name.glb Loaded");
+}, undefined, (err) => {
+    console.error("❌ name.glb load error", err);
+});
+
+// โหลด floating_fantasy_island_diorama.glb
+loader.load('floating_fantasy_island_diorama.glb', (gltf) => {
+    const model = gltf.scene;
+    model.rotation.x = Math.PI / 2;
+    model.position.set(5, 5, 0); // วางตำแหน่งแยกจากอีกโมเดล
+    scene.add(model);
+    console.log("✅ floating_fantasy_island_diorama.glb Loaded");
+}, undefined, (err) => {
+    console.error("❌ floating_fantasy_island_diorama.glb load error", err);
+});
+
+     
+        // Add Light
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(10, 20, 10);
-        directionalLight.castShadow = true;
+        directionalLight.position.set(5, 10, 5); // ตำแหน่งของแสง
+        directionalLight.castShadow = true;  // เปิดการสร้างเงา
         scene.add(directionalLight);
 
-        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
-        scene.add(ambient);
-
-        // Resize
+        // Resize handler
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -103,7 +112,7 @@
 
         // Render loop
         function animate() {
-            controls.update();
+            controls.update(); // อัปเดตการควบคุมกล้อง
             renderer.render(scene, camera);
             requestAnimationFrame(animate);
         }
