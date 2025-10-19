@@ -75,7 +75,7 @@
 const loader = new THREE.GLTFLoader();
 
 // โหลด name.glb
-loader.load('name.glb', (gltf) => {
+loader.load('Land.glb', (gltf) => {
     const model = gltf.scene;
     model.scale.set(0.3, 0.3, 0.3); // ลดขนาดโมเดล
     model.rotation.x = Math.PI / 2;
@@ -87,16 +87,16 @@ loader.load('name.glb', (gltf) => {
 });
 
 // โหลด floating_fantasy_island_diorama.glb
-loader.load('floating_fantasy_island_diorama.glb', (gltf) => {
-    const model = gltf.scene;
-    model.scale.set(0.3, 0.3, 0.3); // ลดขนาดโมเดล
-    model.rotation.x = Math.PI / 2;
-    model.position.set(5, 1.5, 0);
-    scene.add(model);
-    console.log("✅ floating_fantasy_island_diorama.glb Loaded");
-}, undefined, (err) => {
-    console.error("❌ floating_fantasy_island_diorama.glb load error", err);
-});
+// loader.load('floating_fantasy_island_diorama.glb', (gltf) => {
+//     const model = gltf.scene;
+//     model.scale.set(0.3, 0.3, 0.3); // ลดขนาดโมเดล
+//     model.rotation.x = Math.PI / 2;
+//     model.position.set(5, 1.5, 0);
+//     scene.add(model);
+//     console.log("✅ floating_fantasy_island_diorama.glb Loaded");
+// }, undefined, (err) => {
+//     console.error("❌ floating_fantasy_island_diorama.glb load error", err);
+// });
 
 
      
