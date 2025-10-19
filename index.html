@@ -1,23 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EXR Background with Click Zoom & Rotating Waterball</title>
-    <style>
-        html, body {
-            margin: 0;
-            height: 100%;
-        }
-        canvas {
-            display: block;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EXR Background with Click Zoom & Rotating Waterball</title>
+<style>
+    html, body { margin: 0; height: 100%; }
+    canvas { display: block; }
+</style>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
 <body>
 <script>
@@ -55,14 +50,11 @@
 
     // ----- GLTF Loader -----
     const loader = new THREE.GLTFLoader();
-
-    // ตัวแปรเก็บโมเดล
     let picModel = null;
     let waterballModel = null;
 
     // ----- โหลด Land.glb -----
-    loader.load(
-        'Land.glb',
+    loader.load('Land.glb',
         (gltf) => {
             const model = gltf.scene;
             model.position.set(0, 0, 0);
@@ -74,9 +66,8 @@
         (err) => console.error("❌ Land.glb load error", err)
     );
 
-    // ----- โหลด picname.glb -----
-    loader.load(
-        'picname.glb',
+    // ----- โหลด PicName.glb -----
+    loader.load('picname.glb',
         (gltf) => {
             picModel = gltf.scene;
             picModel.scale.set(1, 1, 1);
@@ -90,9 +81,8 @@
         (err) => console.error("❌ picname.glb load error", err)
     );
 
-    // ----- โหลด waterball.glb -----
-    loader.load(
-        'waterball.glb',
+    // ----- โหลด Waterball.glb -----
+    loader.load('waterball.glb',
         (gltf) => {
             waterballModel = gltf.scene;
             waterballModel.position.set(7.55, 1.5, -1.85);
@@ -110,7 +100,7 @@
     directionalLight.castShadow = true;
     scene.add(directionalLight);
 
-    // ----- ระบบคลิกเพื่อซูมเข้า -----
+    // ----- คลิกเพื่อซูม -----
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let isZooming = false;
@@ -130,10 +120,19 @@
             const hit = intersects[0].object;
             console.log("✅ Clicked:", hit.name || hit);
 
+            // คลิก PicName
             if (hit.name === "PicName" || (hit.parent && hit.parent.name === "PicName")) {
                 const box = new THREE.Box3().setFromObject(picModel);
                 const center = box.getCenter(new THREE.Vector3());
+                targetLookAt.copy(center);
+                targetCameraPos.copy(center.clone().add(new THREE.Vector3(0, 5, 10)));
+                isZooming = true;
+            }
 
+            // คลิก Waterball
+            if (hit.name === "Waterball" || (hit.parent && hit.parent.name === "Waterball")) {
+                const box = new THREE.Box3().setFromObject(waterballModel);
+                const center = box.getCenter(new THREE.Vector3());
                 targetLookAt.copy(center);
                 targetCameraPos.copy(center.clone().add(new THREE.Vector3(0, 5, 10)));
                 isZooming = true;
@@ -142,7 +141,7 @@
     }
     renderer.domElement.addEventListener('click', onClick);
 
-    // ----- Resize handler -----
+    // ----- Resize -----
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
@@ -153,10 +152,10 @@
     function animate() {
         requestAnimationFrame(animate);
 
-        // หมุน waterball เฉพาะแกน Y เท่านั้น
+        // หมุน Waterball ขึ้นลงแกน X
         if (waterballModel) {
-            waterballModel.rotation.y += 0.01; // ความเร็วหมุน
-            waterballModel.rotation.x = 0;     // ล็อกแกน X
+            waterballModel.rotation.x += 0.01; // ความเร็วหมุนขึ้นลง
+            waterballModel.rotation.y = 0;     // ล็อกแกน Y
             waterballModel.rotation.z = 0;     // ล็อกแกน Z
         }
 
