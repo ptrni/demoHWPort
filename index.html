@@ -16,7 +16,6 @@
 </head>
 <body>
 <script>
-    // ----- Scene / Camera / Renderer -----
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
     camera.position.set(0, 20, 20);
@@ -26,14 +25,11 @@
     renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
 
-    // ----- Controls -----
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-    // ----- PMREM Generator สำหรับ EXR -----
     const pmremGenerator = new THREE.PMREMGenerator(renderer);
     pmremGenerator.compileEquirectangularShader();
 
-    // ----- โหลด EXR -----
     new THREE.EXRLoader()
         .setPath('./')
         .load('citrus_orchard_road_puresky_1k.exr',
@@ -42,80 +38,50 @@
                 scene.environment = envMap;
                 scene.background = envMap;
                 texture.dispose();
-                console.log("✅ EXR Loaded");
-            },
-            undefined,
-            (err) => console.error("❌ EXR load error", err)
+            }
         );
 
-    // ----- GLTF Loader -----
     const loader = new THREE.GLTFLoader();
     let picModel = null;
     let waterballModel = null;
     let doggModel = null;
 
-    // ----- โหลด Land.glb -----
-    loader.load('Land.glb',
-        (gltf) => {
-            const model = gltf.scene;
-            model.position.set(0, 0, 0);
-            model.name = "Land";
-            scene.add(model);
-            console.log("✅ Land.glb Loaded");
-        },
-        undefined,
-        (err) => console.error("❌ Land.glb load error", err)
-    );
+    loader.load('Land.glb', (gltf) => {
+        const model = gltf.scene;
+        model.position.set(0, 0, 0);
+        model.name = "Land";
+        scene.add(model);
+    });
 
-    // ----- โหลด PicName.glb -----
-    loader.load('picname.glb',
-        (gltf) => {
-            picModel = gltf.scene;
-            picModel.scale.set(1, 1, 1);
-            picModel.rotation.x = Math.PI / 2;
-            picModel.position.set(0, 10, 0);
-            picModel.name = "PicName";
-            scene.add(picModel);
-            console.log("✅ picname.glb Loaded");
-        },
-        undefined,
-        (err) => console.error("❌ picname.glb load error", err)
-    );
+    loader.load('picname.glb', (gltf) => {
+        picModel = gltf.scene;
+        picModel.scale.set(1,1,1);
+        picModel.rotation.x = Math.PI / 2;
+        picModel.position.set(0,10,0);
+        picModel.name = "PicName";
+        scene.add(picModel);
+    });
 
-    // ----- โหลด Waterball.glb -----
-    loader.load('waterball.glb',
-        (gltf) => {
-            waterballModel = gltf.scene;
-            waterballModel.position.set(7.55, 1.5, -1.85);
-            waterballModel.name = "Waterball";
-            scene.add(waterballModel);
-            console.log("✅ waterball.glb Loaded");
-        },
-        undefined,
-        (err) => console.error("❌ waterball.glb load error", err)
-    );
+    loader.load('waterball.glb', (gltf) => {
+        waterballModel = gltf.scene;
+        waterballModel.position.set(7.55,1.5,-1.85);
+        waterballModel.name = "Waterball";
+        scene.add(waterballModel);
+    });
 
-    // ----- โหลด Dogg.glb -----
-    loader.load('dogg.glb',
-        (gltf) => {
-            doggModel = gltf.scene;
-            doggModel.position.set(1, 2, 1);
-            doggModel.scale.set(1, 1, 1);
-            doggModel.name = "Dogg";
-            scene.add(doggModel);
-            console.log("✅ dogg.glb Loaded");
-        },
-        undefined,
-        (err) => console.error("❌ dogg.glb load error", err)
-    );
+    loader.load('dogg.glb', (gltf) => {
+        doggModel = gltf.scene;
+        doggModel.position.set(1,2,1);
+        doggModel.scale.set(1,1,1);
+        doggModel.name = "Dogg";
+        scene.add(doggModel);
+    });
 
-    // ----- แสง -----
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 10, 5);
+    const directionalLight = new THREE.DirectionalLight(0xffffff,1);
+    directionalLight.position.set(5,10,5);
     directionalLight.castShadow = true;
     scene.add(directionalLight);
 
-    // ----- คลิกเพื่อซูม -----
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let isZooming = false;
@@ -123,84 +89,69 @@
     let targetLookAt = new THREE.Vector3();
     const zoomSpeed = 0.05;
 
-    function onClick(event) {
+    function onClick(event){
         const rect = renderer.domElement.getBoundingClientRect();
-        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+        mouse.x = ((event.clientX - rect.left)/rect.width)*2-1;
+        mouse.y = -((event.clientY - rect.top)/rect.height)*2+1;
 
         raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(scene.children, true);
+        const intersects = raycaster.intersectObjects(scene.children,true);
 
-        if (intersects.length > 0) {
+        if(intersects.length>0){
             const hit = intersects[0].object;
-            console.log("✅ Clicked:", hit.name || hit);
 
             // PicName → ซูมเข้า
-            if (hit.name === "PicName" || (hit.parent && hit.parent.name === "PicName")) {
+            if(hit.name==="PicName" || (hit.parent && hit.parent.name==="PicName")){
                 const box = new THREE.Box3().setFromObject(picModel);
                 const center = box.getCenter(new THREE.Vector3());
                 targetLookAt.copy(center);
-                targetCameraPos.copy(center.clone().add(new THREE.Vector3(0, 5, 10)));
+                targetCameraPos.copy(center.clone().add(new THREE.Vector3(0,5,10)));
                 isZooming = true;
             }
 
             // Waterball → ซูมเข้า
-            if (hit.name === "Waterball" || (hit.parent && hit.parent.name === "Waterball")) {
+            if(hit.name==="Waterball" || (hit.parent && hit.parent.name==="Waterball")){
                 const box = new THREE.Box3().setFromObject(waterballModel);
                 const center = box.getCenter(new THREE.Vector3());
                 targetLookAt.copy(center);
-                targetCameraPos.copy(center.clone().add(new THREE.Vector3(0, 5, 10)));
-                isZooming = true;
-            }
-
-            // Dogg → ซูมออก
-            if (hit.name === "Dogg" || (hit.parent && hit.parent.name === "Dogg")) {
-                const box = new THREE.Box3().setFromObject(doggModel);
-                const center = box.getCenter(new THREE.Vector3());
-                targetLookAt.copy(center);
-
-                // ปรับระยะซูมออกให้ชัดเจน
-                const zoomOutHeight = 30;  // กล้องสูงขึ้น
-                const zoomOutDistance = 50; // กล้องถอยหลัง
-                targetCameraPos.set(center.x, center.y + zoomOutHeight, center.z + zoomOutDistance);
+                targetCameraPos.copy(center.clone().add(new THREE.Vector3(0,5,10)));
                 isZooming = true;
             }
         }
     }
-    renderer.domElement.addEventListener('click', onClick);
 
-    // ----- Resize -----
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
+    renderer.domElement.addEventListener('click',onClick);
+
+    window.addEventListener('resize',()=>{
+        camera.aspect = window.innerWidth/window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // ----- Animate Loop -----
-    function animate() {
+    function animate(){
         requestAnimationFrame(animate);
 
         // หมุน Waterball ขึ้นลงแกน X
-        if (waterballModel) {
-            waterballModel.rotation.x += 0.01;
-            waterballModel.rotation.y = 0;
-            waterballModel.rotation.z = 0;
+        if(waterballModel){
+            waterballModel.rotation.x+=0.01;
+            waterballModel.rotation.y=0;
+            waterballModel.rotation.z=0;
         }
 
-        // ซูมเข้าออก
-        if (isZooming) {
-            camera.position.lerp(targetCameraPos, zoomSpeed);
-            controls.target.lerp(targetLookAt, zoomSpeed);
+        if(isZooming){
+            camera.position.lerp(targetCameraPos,zoomSpeed);
+            controls.target.lerp(targetLookAt,zoomSpeed);
             controls.update();
 
-            if (camera.position.distanceTo(targetCameraPos) < 0.1) {
-                isZooming = false;
+            if(camera.position.distanceTo(targetCameraPos)<0.1){
+                isZooming=false;
             }
         }
 
         controls.update();
-        renderer.render(scene, camera);
+        renderer.render(scene,camera);
     }
+
     animate();
 </script>
 </body>
