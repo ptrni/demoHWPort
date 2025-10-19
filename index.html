@@ -73,7 +73,7 @@
 
         // Load GLB Model
         const loader = new THREE.GLTFLoader();
-        loader.load('name.glb', (gltf) => {
+        loader.load('floating_fantasy_island_diorama.glb', (gltf) => {
             const model = gltf.scene;
             // หมุนโมเดลให้ยืนตรง
             model.rotation.x = Math.PI / 2;  // ปรับการหมุนให้เหมาะสม
@@ -84,16 +84,7 @@
             console.error("❌ GLB load error", err);
         });
 
-        const loader2 = new THREE.GLTFLoader();
-            loader2.load('floating_fantasy_island_diorama.glb', (gltf) => {
-                const extraModel = gltf.scene;
-                extraModel.scale.set(0.5, 0.5, 0.5);
-                extraModel.position.set(1, 0, 0); // วางไว้ข้างๆ โมเดลเดิม
-                scene.add(extraModel);
-                console.log("✅ Extra GLB Loaded (5bbb80f2-4ed3-4a5d-baa4-c7b7de5a653b.glb)");
-            }, undefined, (error) => {
-                console.error('❌ Error loading extra GLB:', error);
-            });
+        
 
         // Add Light
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
