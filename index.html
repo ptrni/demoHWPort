@@ -81,7 +81,6 @@
         (err) => console.error("❌ picname.glb load error", err)
     );
 
-    // ----- โหลด Waterball.glb -----
     loader.load('waterball.glb',
         (gltf) => {
             waterballModel = gltf.scene;
@@ -92,6 +91,18 @@
         },
         undefined,
         (err) => console.error("❌ waterball.glb load error", err)
+    );
+
+     loader.load('dogg.glb',
+        (gltf) => {
+            waterballModel = gltf.scene;
+            waterballModel.position.set(5, 1.5, 0);
+            waterballModel.name = "shiba";
+            scene.add(waterballModel);
+            console.log("✅ dogg.glb Loaded");
+        },
+        undefined,
+        (err) => console.error("❌ dogg.glb load error", err)
     );
 
     // ----- แสง -----
