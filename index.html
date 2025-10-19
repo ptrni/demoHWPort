@@ -64,7 +64,7 @@
     // Loader สำหรับ GLB ตัวแรก
     const loader = new THREE.GLTFLoader();
 
-    // โหลด name.glb
+    // โหลด Land.glb
     loader.load(
         'Land.glb',
         (gltf) => {
@@ -81,7 +81,7 @@
     );
 
     // โหลด name.glb
-     loader.load('name.glb', (gltf) => {
+     loader.load('picname.glb', (gltf) => {
          const model = gltf.scene;
          model.scale.set(1, 1, 1);
          model.rotation.x = Math.PI / 2;
