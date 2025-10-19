@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EXR Background with Plane</title>
+    <title>EXR Background with Click Zoom</title>
     <style>
         html, body {
             margin: 0;
@@ -23,20 +23,15 @@
 <script>
     // Scene / Camera / Renderer
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-        60,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        100
-    );
-    camera.position.set(0, 20, 20); // ยกกล้องขึ้นและซูมออก
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 5, 10);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;  // เปิดเงา
+    renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
 
-    // OrbitControls
+    // Controls
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
     // PMREM Generator
@@ -45,70 +40,119 @@
 
     // Load EXR and set as background
     new THREE.EXRLoader()
-        .setPath('./') // Path to EXR file
-        .load(
-            'citrus_orchard_road_puresky_1k.exr',
-            (texture) => {
-                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
-                scene.environment = envMap; // Set environment map
-                scene.background = envMap;  // Set background
-                texture.dispose();
-                console.log("✅ EXR Loaded");
-            },
-            undefined,
-            (err) => {
-                console.error("❌ EXR load error", err);
-            }
-        );
-    
-    // Loader สำหรับ GLB ตัวแรก
+        .setPath('./')
+        .load('citrus_orchard_road_puresky_1k.exr', (texture) => {
+            const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+            scene.environment = envMap;
+            scene.background = envMap;
+            texture.dispose();
+            console.log("✅ EXR Loaded");
+        }, undefined, (err) => {
+            console.error("❌ EXR load error", err);
+        });
+
+    // Load GLB Models
     const loader = new THREE.GLTFLoader();
 
     // โหลด Land.glb
-    loader.load(
-        'Land.glb',
-        (gltf) => {
-            const model = gltf.scene;
-            model.position.set(0, 0, 0);  // ปรับตำแหน่งให้เหมาะสม
-            scene.add(model);
-            console.log("✅ name.glb Loaded");
-        },
-        undefined,
-        (err) => {
-            console.error("❌ name.glb load error", err);
-        }
-    );
+    loader.load('Land.glb', (gltf) => {
+        const model = gltf.scene;
+        model.position.set(0, 0, 0);
+        model.scale.set(1, 1, 1);
+        model.name = "Land";
+        scene.add(model);
+        console.log("✅ Land.glb Loaded");
+    }, undefined, (err) => {
+        console.error("❌ Land.glb load error", err);
+    });
 
-    // โหลด name.glb
-     loader.load('picname.glb', (gltf) => {
-         const model = gltf.scene;
-         model.scale.set(1, 1, 1);
-         model.rotation.x = Math.PI / 2;
-         model.position.set(0, 10, 0);
-         scene.add(model);
-         console.log("✅ floating_fantasy_island_diorama.glb Loaded");
-     }, undefined, (err) => {
-        console.error("❌ floating_fantasy_island_diorama.glb load error", err);
-     });
+    // โหลด picname.glb
+    loader.load('picname.glb', (gltf) => {
+        const model = gltf.scene;
+        model.scale.set(1, 1, 1);
+        model.rotation.x = Math.PI / 2;
+        model.position.set(0, 1, 0); // ยกขึ้นเล็กน้อย
+        model.name = "Pic";
+        scene.add(model);
+        console.log("✅ picname.glb Loaded");
+    }, undefined, (err) => {
+        console.error("❌ picname.glb load error", err);
+    });
 
-    // Add Light
+    // Light
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 10, 5); // ตำแหน่งของแสง
-    directionalLight.castShadow = true;      // เปิดการสร้างเงา
+    directionalLight.position.set(5, 10, 5);
+    directionalLight.castShadow = true;
     scene.add(directionalLight);
 
-    // Resize handler
+    // Resize
     window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Render loop
+    // --- ระบบคลิกเพื่อซูมเข้า ---
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const clickable = [];
+    let isZooming = false;
+    let targetCameraPos = new THREE.Vector3();
+    let targetLookAt = new THREE.Vector3();
+    const zoomSpeed = 0.05;
+
+    // เมื่อโมเดลโหลดเสร็จแล้ว ให้เพิ่มเข้า clickable
+    const observer = new MutationObserver(() => {
+        clickable.length = 0;
+        scene.traverse(obj => {
+            if (obj.isMesh) clickable.push(obj);
+        });
+    });
+    observer.observe(renderer.domElement, { childList: true });
+
+    function onClick(event) {
+        const rect = renderer.domElement.getBoundingClientRect();
+        mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(clickable, true);
+        if (intersects.length > 0) {
+            const hit = intersects[0].object;
+            console.log("✅ Clicked:", hit.name || hit);
+
+            // หา center ของ object ที่คลิก
+            const box = new THREE.Box3().setFromObject(hit);
+            const center = box.getCenter(new THREE.Vector3());
+
+            // ตั้งตำแหน่งกล้องและเป้าหมายที่ต้องการซูมเข้า
+            targetLookAt.copy(center);
+            targetCameraPos.copy(center.clone().add(new THREE.Vector3(0, 1.5, 3)));
+
+            isZooming = true;
+        }
+    }
+
+    renderer.domElement.addEventListener('click', onClick);
+
+    // Animate Loop
     function animate() {
-        controls.update(); // อัปเดตการควบคุมกล้อง
-        renderer.render(scene, camera);
         requestAnimationFrame(animate);
+
+        // ถ้ากำลังซูม
+        if (isZooming) {
+            camera.position.lerp(targetCameraPos, zoomSpeed);
+            controls.target.lerp(targetLookAt, zoomSpeed);
+            controls.update();
+
+            // หยุดเมื่อเข้าใกล้พอ
+            if (camera.position.distanceTo(targetCameraPos) < 0.05) {
+                isZooming = false;
+            }
+        }
+
+        controls.update();
+        renderer.render(scene, camera);
     }
     animate();
 </script>
