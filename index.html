@@ -153,9 +153,11 @@
     function animate() {
         requestAnimationFrame(animate);
 
-        // หมุน waterball
+        // หมุน waterball เฉพาะแกน Y เท่านั้น
         if (waterballModel) {
-            waterballModel.rotation.y += 0.01; // ปรับความเร็วได้
+            waterballModel.rotation.y += 0.01; // ความเร็วหมุน
+            waterballModel.rotation.x = 0;     // ล็อกแกน X
+            waterballModel.rotation.z = 0;     // ล็อกแกน Z
         }
 
         // ซูมเข้าออก
@@ -176,4 +178,3 @@
 </script>
 </body>
 </html>
-
