@@ -1,126 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EXR Background with Plane</title>
+    <title>EXR Background with GLB</title>
     <style>
-        html,
-        body {
-            margin: 0;
-            height: 100%;
-        }
-
-        canvas {
-            display: block;
-        }
+        html, body { margin: 0; height: 100%; }
+        canvas { display: block; }
     </style>
 
+    <!-- Three.js -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 </head>
-
 <body>
-    <script>
-        // Scene / Camera / Renderer
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-        camera.position.set(0, 10, 20); // ยกกล้องขึ้นและซูมออก
+<script>
+    // Scene / Camera / Renderer
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 5, 15); // ยกกล้องขึ้นและถอยออก
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.shadowMap.enabled = true;  // เปิดการแสดงผลเงา
-        document.body.appendChild(renderer.domElement);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.setClearColor(0x000000, 0); // พื้นโปร่งใส
+    document.body.appendChild(renderer.domElement);
 
-        // OrbitControls
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    // OrbitControls
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-        // PMREM Generator
-        const pmremGenerator = new THREE.PMREMGenerator(renderer);
-        pmremGenerator.compileEquirectangularShader();
+    // PMREM Generator
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
 
-        // Load EXR and set as background
-        new THREE.EXRLoader()
-            .setPath('./')  // Path to EXR file
-            .load('citrus_orchard_road_puresky_1k.exr', (texture) => {
-                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
-                scene.environment = envMap; // Set environment map
-                scene.background = envMap; // Set background
-                texture.dispose();
-                console.log("✅ EXR Loaded");
-            }, undefined, (err) => {
-                console.error("❌ EXR load error", err);
-            });
-
-        // Add Plane (Stand upright and set shadows)
-        const planeGeometry = new THREE.PlaneGeometry(10, 10); // สร้าง Plane ขนาด 10x10
-        const planeMaterial = new THREE.MeshStandardMaterial({
-            color: 0x808080,
-            roughness: 0.5,
-            metalness: 0.5,
-            side: THREE.DoubleSide,
-            reflectivity: 0.8
-        }); // สีเทาและตั้งค่าให้มีการสะท้อนเงา
-
-        const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-        plane.rotation.x = Math.PI / 2; // หมุน Plane ให้ยืนขึ้น
-        plane.position.set(0, 2, 0);  // ยก plane ขึ้น
-        plane.receiveShadow = true;  // เปิดการรับเงาของ plane
-        scene.add(plane);
-
-      // Loader สำหรับ GLB ตัวแรก
-const loader = new THREE.GLTFLoader();
-
-// โหลด name.glb
-loader.load('Land.glb', (gltf) => {
-    const model = gltf.scene;
-    model.scale.set(0.3, 0.3, 0.3); // ลดขนาดโมเดล
-    model.rotation.x = 0;            // ทำให้นอนราบ
-    model.position.set(0, 0, 0);    // วางบนพื้น
-    scene.add(model);
-    console.log("✅ Land.glb Loaded");
-}, undefined, (err) => {
-    console.error("❌ Land.glb load error", err);
-});
-
-// โหลด floating_fantasy_island_diorama.glb
-// loader.load('floating_fantasy_island_diorama.glb', (gltf) => {
-//     const model = gltf.scene;
-//     model.scale.set(0.3, 0.3, 0.3); // ลดขนาดโมเดล
-//     model.rotation.x = Math.PI / 2;
-//     model.position.set(5, 1.5, 0);
-//     scene.add(model);
-//     console.log("✅ floating_fantasy_island_diorama.glb Loaded");
-// }, undefined, (err) => {
-//     console.error("❌ floating_fantasy_island_diorama.glb load error", err);
-// });
-
-
-     
-        // Add Light
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 10, 5); // ตำแหน่งของแสง
-        directionalLight.castShadow = true;  // เปิดการสร้างเงา
-        scene.add(directionalLight);
-
-        // Resize handler
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+    // Load EXR Background
+    new THREE.EXRLoader()
+        .setPath('./')
+        .load('dikhololo_night_1k.exr', (texture) => {
+            const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+            scene.environment = envMap;
+            scene.background = envMap;
+            texture.dispose();
+            console.log("✅ EXR Loaded");
+        }, undefined, (err) => {
+            console.error("❌ EXR load error", err);
         });
 
-        // Render loop
-        function animate() {
-            controls.update(); // อัปเดตการควบคุมกล้อง
-            renderer.render(scene, camera);
-            requestAnimationFrame(animate);
-        }
-        animate();
-    </script>
-</body>
+    // Light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
 
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 10, 5);
+    directionalLight.castShadow = true;
+    scene.add(directionalLight);
+
+    // Load GLB Model
+    const loader = new THREE.GLTFLoader();
+    loader.load('Mari.glb', (gltf) => {
+        const model = gltf.scene;
+        model.scale.set(0.5, 0.5, 0.5); // ปรับขนาด
+        model.rotation.x = 0;            // นอนราบ
+        model.position.set(5, 0, 0);     // ขยับไปขวา
+        scene.add(model);
+        console.log("✅ GLB Loaded");
+    }, undefined, (err) => {
+        console.error("❌ GLB load error", err);
+    });
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Render loop
+    function animate() {
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+    }
+    animate();
+</script>
+</body>
 </html>
